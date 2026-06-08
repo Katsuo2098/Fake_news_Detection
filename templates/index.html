@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Fake News Detection</title>
+    <style>
+        :root {
+            --bg-1: #efe2cf;
+            --bg-2: #f8f5ee;
+            --panel: rgba(255, 252, 246, 0.88);
+            --ink: #1d2a33;
+            --muted: #667784;
+            --line: #dccfb8;
+            --accent: #0f766e;
+            --accent-2: #b45309;
+            --fake: #b42318;
+            --real: #166534;
+            --warn: #9a6700;
+            --shadow: 0 20px 55px rgba(46, 40, 31, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(180, 83, 9, 0.12), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.12), transparent 30%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            padding: 24px;
+        }
+
+        .shell {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 22px;
+        }
+
+        .hero,
+        .panel {
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(220, 207, 184, 0.7);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero {
+            padding: 28px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.1);
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3.9rem);
+            line-height: 0.98;
+            letter-spacing: -0.03em;
+        }
+
+        .subcopy {
+            margin: 0;
+            color: var(--muted);
+            max-width: 720px;
+            line-height: 1.7;
+            font-size: 1.03rem;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 22px;
+        }
+
+        .panel {
+            padding: 24px;
+        }
+
+        .panel h2 {
+            margin: 0 0 16px;
+            font-size: 1.15rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 260px;
+            resize: vertical;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.82);
+            padding: 18px;
+            font: inherit;
+            line-height: 1.6;
+            color: var(--ink);
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: 0;
+            padding: 13px 22px;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), #115e59);
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .error {
+            margin-top: 18px;
+            border-radius: 18px;
+            border: 1px solid #fed7aa;
+            background: #fff7ed;
+            color: #9a3412;
+            padding: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .badge.fake {
+            background: #fff1f0;
+            color: var(--fake);
+        }
+
+        .badge.real {
+            background: #effcf3;
+            color: var(--real);
+        }
+
+        .badge.warning {
+            background: #fff7e6;
+            color: var(--warn);
+        }
+
+        .confidence {
+            min-width: 180px;
+        }
+
+        .confidence strong {
+            display: block;
+            font-size: 1.8rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .metric strong {
+            font-size: 1.25rem;
+        }
+
+        .section {
+            padding-top: 18px;
+            border-top: 1px solid rgba(220, 207, 184, 0.8);
+            margin-top: 18px;
+        }
+
+        ul {
+            margin: 10px 0 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(180, 83, 9, 0.12);
+            color: #8a4b08;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .fact-box {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .fact-box p,
+        .section p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 8px 0 0;
+        }
+
+        .empty {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="hero">
+            <div class="eyebrow">Hybrid Detection System</div>
+            <h1>Fake News Detection With Verification Layer</h1>
+            <p class="subcopy">
+                This upgraded pipeline combines your NLP classifier with clickbait detection,
+                confidence scoring, explanation generation, and a fact-checking layer that can
+                use either an external API or a local knowledge base.
+            </p>
+        </section>
+
+        <section class="layout">
+            <div class="panel">
+                <h2>Analyze News Text</h2>
+                <form method="POST">
+                    <textarea name="news" placeholder="Paste a headline, article body, or full news text here...">{{ submitted_text }}</textarea>
+                    <div class="actions">
+                        <button type="submit">Run Hybrid Analysis</button>
+                        <span class="hint">TF-IDF + PassiveAggressive + fact-check + clickbait signals</span>
+                    </div>
+                </form>
+
+                {% if error_message %}
+                    <div class="error">
+                        <strong>Error:</strong> {{ error_message }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="panel">
+                {% if analysis %}
+                    <div class="result-header">
+                        <div>
+                            <div class="badge {{ analysis.tone }}">{{ analysis.label }}</div>
+                        </div>
+                        <div class="confidence">
+                            <span class="hint">Hybrid confidence</span>
+                            <strong>{{ analysis.confidence }}%</strong>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <span>NLP model output</span>
+                            <strong>{{ analysis.model_label }}</strong>
+                            <div class="hint">{{ analysis.model_confidence }}% confidence</div>
+                        </div>
+                        <div class="metric">
+                            <span>Clickbait risk</span>
+                            <strong>{{ analysis.clickbait.risk_level }}</strong>
+                            <div class="hint">{{ analysis.clickbait.score_percent }}% score</div>
+                        </div>
+                    </div>
+
+                    <div class="fact-box">
+                        <strong>Fact-check status:</strong> {{ analysis.fact_check.status|capitalize }}<br>
+                        <span class="hint">Source: {{ analysis.fact_check.source }}</span>
+                        <p>{{ analysis.fact_check.explanation }}</p>
+                        {% if analysis.fact_check.matched_claim %}
+                            <p><strong>Matched claim:</strong> {{ analysis.fact_check.matched_claim }}</p>
+                        {% endif %}
+                        {% if analysis.fact_check.evidence_url %}
+                            <p><a href="{{ analysis.fact_check.evidence_url }}" target="_blank" rel="noreferrer">Open supporting source</a></p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
+                        <strong>Why this result</strong>
+                        <p>{{ analysis.explanation.summary }}</p>
+                        <ul>
+                            {% for reason in analysis.explanation.reasons %}
+                                <li>{{ reason }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <strong>Top informative terms</strong>
+                        {% if analysis.explanation.top_terms %}
+                            <div class="pill-list">
+                                {% for term in analysis.explanation.top_terms %}
+                                    <div class="pill">{{ term }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No dominant weighted terms were available for this text.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
+                        <strong>Clickbait signals</strong>
+                        {% if analysis.clickbait.matched_terms %}
+                            <div class="pill-list">
+                                {% for term in analysis.clickbait.matched_terms %}
+                                    <div class="pill">{{ term }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No strong clickbait keywords were detected.</p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        Results will appear here after you submit text. The dashboard shows the final label,
+                        confidence score, clickbait risk, fact-check evidence, and explanation.
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

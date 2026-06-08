@@ -1,0 +1,32 @@
+[
+  {
+    "claim": "NASA confirmed that the Earth is flat",
+    "verdict": "False",
+    "explanation": "NASA has repeatedly documented and published evidence that the Earth is an oblate spheroid, not flat.",
+    "source_url": "https://www.nasa.gov/"
+  },
+  {
+    "claim": "COVID-19 vaccines contain microchips for public tracking",
+    "verdict": "False",
+    "explanation": "There is no credible evidence that authorized vaccines contain microchips. This is a widely debunked misinformation claim.",
+    "source_url": "https://www.who.int/"
+  },
+  {
+    "claim": "The United States landed humans on the Moon in 1969",
+    "verdict": "True",
+    "explanation": "Apollo 11 landed on the Moon on July 20, 1969, and the mission is documented through multiple independent sources.",
+    "source_url": "https://www.nasa.gov/mission/apollo-11/"
+  },
+  {
+    "claim": "Climate change is influenced by human greenhouse gas emissions",
+    "verdict": "True",
+    "explanation": "Scientific consensus supports that human greenhouse gas emissions are a primary driver of recent global warming.",
+    "source_url": "https://climate.nasa.gov/"
+  },
+  {
+    "claim": "Drinking bleach cures viral infections",
+    "verdict": "False",
+    "explanation": "Bleach is toxic and is not a treatment for viral infections.",
+    "source_url": "https://www.cdc.gov/"
+  }
+]
