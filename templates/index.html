@@ -3,228 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hybrid Fake News Detection</title>
+    <title>SignalTrail | Hybrid Fake News Detection</title>
     <style>
         :root {
-            --bg-1: #efe2cf;
-            --bg-2: #f8f5ee;
-            --panel: rgba(255, 252, 246, 0.88);
-            --ink: #1d2a33;
-            --muted: #667784;
-            --line: #dccfb8;
-            --accent: #0f766e;
-            --accent-2: #b45309;
-            --fake: #b42318;
-            --real: #166534;
-            --warn: #9a6700;
-            --shadow: 0 20px 55px rgba(46, 40, 31, 0.12);
+            --bg: #080a0f;
+            --bg-soft: #0d111b;
+            --panel: rgba(15, 20, 31, 0.86);
+            --panel-strong: rgba(22, 28, 43, 0.94);
+            --line: rgba(255, 255, 255, 0.11);
+            --line-bright: rgba(125, 249, 255, 0.38);
+            --ink: #f7fbff;
+            --muted: #94a3b8;
+            --cyan: #7df9ff;
+            --lime: #b7ff5a;
+            --pink: #ff4ecd;
+            --amber: #ffb86b;
+            --fake: #ff5b7c;
+            --real: #78ff9a;
+            --warn: #ffd166;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
         }
 
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at top left, rgba(180, 83, 9, 0.12), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.12), transparent 30%),
-                linear-gradient(135deg, var(--bg-1), var(--bg-2));
-            padding: 24px;
+                linear-gradient(rgba(125, 249, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 78, 205, 0.035) 1px, transparent 1px),
+                linear-gradient(135deg, #06070b 0%, #0b1020 46%, #140d19 100%);
+            background-size: 42px 42px, 42px 42px, auto;
+            padding: 28px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(120deg, rgba(125, 249, 255, 0.10), transparent 34%),
+                linear-gradient(300deg, rgba(255, 78, 205, 0.11), transparent 36%);
+            mask-image: linear-gradient(to bottom, black, transparent 82%);
         }
 
         .shell {
-            width: min(1180px, 100%);
+            width: min(1240px, 100%);
             margin: 0 auto;
             display: grid;
-            gap: 22px;
+            gap: 18px;
+            position: relative;
+            z-index: 1;
         }
 
+        .topbar,
         .hero,
-        .panel {
+        .panel,
+        .result-panel {
+            border: 1px solid var(--line);
             background: var(--panel);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(220, 207, 184, 0.7);
-            border-radius: 24px;
             box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+            border-radius: 8px;
         }
 
-        .hero {
-            padding: 28px;
-            display: grid;
-            gap: 14px;
+        .topbar {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 18px;
         }
 
-        .eyebrow {
-            display: inline-flex;
-            width: fit-content;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: rgba(15, 118, 110, 0.1);
-            color: var(--accent);
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid rgba(125, 249, 255, 0.5);
+            background:
+                linear-gradient(135deg, rgba(125, 249, 255, 0.24), rgba(255, 78, 205, 0.18)),
+                #101827;
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        .mark::after {
+            content: "";
+            position: absolute;
+            inset: 9px;
+            border: 1px solid var(--cyan);
+            transform: rotate(45deg);
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 0.95rem;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
         }
 
-        h1 {
-            margin: 0;
-            font-size: clamp(2rem, 5vw, 3.9rem);
-            line-height: 0.98;
-            letter-spacing: -0.03em;
+        .brand span,
+        .subcopy,
+        .hint,
+        .section p,
+        .empty,
+        li {
+            color: var(--muted);
         }
 
-        .subcopy {
-            margin: 0;
+        .nav-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .nav-pills span,
+        .eyebrow,
+        .pill,
+        .sample-chip,
+        .status-chip {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 999px;
             color: var(--muted);
-            max-width: 720px;
-            line-height: 1.7;
-            font-size: 1.03rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .nav-pills span {
+            padding: 8px 10px;
+        }
+
+        .hero {
+            min-height: 310px;
+            display: grid;
+            align-content: end;
+            gap: 18px;
+            padding: clamp(24px, 5vw, 48px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(100deg, rgba(8, 10, 15, 0.12), rgba(8, 10, 15, 0.82)),
+                url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1800&q=80");
+            background-size: cover;
+            background-position: center;
+            filter: saturate(0.85) contrast(1.08);
+            z-index: -2;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.04),
+                    rgba(255, 255, 255, 0.04) 1px,
+                    transparent 1px,
+                    transparent 7px
+                );
+            opacity: 0.45;
+            z-index: -1;
+        }
+
+        .eyebrow {
+            width: fit-content;
+            padding: 8px 12px;
+            color: var(--cyan);
+            border-color: rgba(125, 249, 255, 0.36);
+        }
+
+        h1 {
+            max-width: 860px;
+            margin: 0;
+            font-size: clamp(2.5rem, 8vw, 6.4rem);
+            line-height: 0.88;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hero-meta span {
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            background: rgba(8, 10, 15, 0.54);
+            border-radius: 8px;
+            color: var(--ink);
+            font-size: 0.86rem;
+            font-weight: 700;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 22px;
+            grid-template-columns: minmax(0, 0.96fr) minmax(420px, 1.04fr);
+            gap: 18px;
+            align-items: start;
         }
 
-        .panel {
-            padding: 24px;
+        .panel,
+        .result-panel {
+            padding: clamp(18px, 3vw, 28px);
         }
 
-        .panel h2 {
-            margin: 0 0 16px;
-            font-size: 1.15rem;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 260px;
-            resize: vertical;
-            border-radius: 18px;
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.82);
-            padding: 18px;
-            font: inherit;
-            line-height: 1.6;
-            color: var(--ink);
-            outline: none;
-        }
-
-        textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
-        }
-
-        .actions {
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            border: 0;
-            padding: 13px 22px;
-            border-radius: 999px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            background: linear-gradient(135deg, var(--accent), #115e59);
-        }
-
-        .hint {
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        .error {
-            margin-top: 18px;
-            border-radius: 18px;
-            border: 1px solid #fed7aa;
-            background: #fff7ed;
-            color: #9a3412;
-            padding: 16px;
-        }
-
-        .result-header {
+        .panel-head {
             display: flex;
             justify-content: space-between;
             gap: 16px;
             align-items: start;
             margin-bottom: 18px;
+        }
+
+        .panel h2,
+        .section-title {
+            margin: 0;
+            font-size: 0.92rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .pulse-line {
+            height: 8px;
+            width: 96px;
+            margin-top: 6px;
+            background:
+                linear-gradient(90deg, var(--cyan), transparent 22%),
+                linear-gradient(90deg, transparent 32%, var(--pink) 32%, var(--pink) 38%, transparent 38%),
+                linear-gradient(90deg, transparent 54%, var(--lime) 54%, var(--lime) 70%, transparent 70%);
+            border-radius: 999px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            resize: vertical;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background:
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                #0c1019;
+            background-size: 100% 34px;
+            padding: 18px;
+            font: inherit;
+            line-height: 1.65;
+            color: var(--ink);
+            outline: none;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+        }
+
+        textarea:focus {
+            border-color: var(--line-bright);
+            box-shadow: 0 0 0 4px rgba(125, 249, 255, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .sample-row {
+            display: flex;
             flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0 0;
+        }
+
+        .sample-chip {
+            cursor: pointer;
+            color: var(--ink);
+            padding: 8px 10px;
+            transition: transform 160ms ease, border-color 160ms ease, color 160ms ease;
+        }
+
+        .sample-chip:hover {
+            transform: translateY(-1px);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 12px;
+        }
+
+        button[type="submit"] {
+            border: 0;
+            min-height: 54px;
+            padding: 14px 22px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            cursor: pointer;
+            color: #08100c;
+            background: linear-gradient(90deg, var(--cyan), var(--lime) 52%, var(--amber));
+            box-shadow: 0 14px 38px rgba(125, 249, 255, 0.18);
+        }
+
+        .counter {
+            color: var(--muted);
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .error {
+            margin-top: 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 91, 124, 0.38);
+            background: rgba(255, 91, 124, 0.10);
+            color: #ffdbe3;
+            padding: 14px;
+        }
+
+        .result-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .verdict-label {
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .verdict-title {
+            margin: 0;
+            font-size: clamp(2.2rem, 6vw, 4.8rem);
+            line-height: 0.9;
+            text-transform: uppercase;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
+            padding: 8px 11px;
             border-radius: 999px;
-            font-weight: 700;
-            font-size: 0.95rem;
+            border: 1px solid var(--line);
+            font-weight: 900;
+            font-size: 0.74rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
         }
 
         .badge.fake {
-            background: #fff1f0;
+            background: rgba(255, 91, 124, 0.12);
+            border-color: rgba(255, 91, 124, 0.45);
             color: var(--fake);
         }
 
         .badge.real {
-            background: #effcf3;
+            background: rgba(120, 255, 154, 0.12);
+            border-color: rgba(120, 255, 154, 0.45);
             color: var(--real);
         }
 
         .badge.warning {
-            background: #fff7e6;
+            background: rgba(255, 209, 102, 0.12);
+            border-color: rgba(255, 209, 102, 0.45);
             color: var(--warn);
         }
 
         .confidence {
-            min-width: 180px;
+            min-width: 150px;
+            text-align: right;
         }
 
-        .confidence strong {
-            display: block;
-            font-size: 1.8rem;
+        .score-ring {
+            width: 110px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin-left: auto;
+            background:
+                conic-gradient(var(--cyan) calc(var(--score) * 1%), rgba(255, 255, 255, 0.09) 0),
+                #0b1019;
+            position: relative;
+        }
+
+        .score-ring::after {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+        }
+
+        .score-ring strong {
+            position: relative;
+            z-index: 1;
+            font-size: 1.6rem;
         }
 
         .metric-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            margin-bottom: 18px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
-        .metric {
+        .metric,
+        .fact-box,
+        .mini-card {
             border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.72);
+            border-radius: 8px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.045);
         }
 
-        .metric span {
+        .metric span,
+        .mini-card span {
             display: block;
             color: var(--muted);
-            font-size: 0.9rem;
-            margin-bottom: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
         }
 
-        .metric strong {
-            font-size: 1.25rem;
+        .metric strong,
+        .mini-card strong {
+            display: block;
+            font-size: 1.08rem;
+            line-height: 1.1;
+        }
+
+        .fact-box {
+            border-color: rgba(125, 249, 255, 0.22);
+            background: linear-gradient(135deg, rgba(125, 249, 255, 0.08), rgba(255, 78, 205, 0.045));
+        }
+
+        .fact-box p,
+        .section p {
+            line-height: 1.6;
+            margin: 8px 0 0;
         }
 
         .section {
-            padding-top: 18px;
-            border-top: 1px solid rgba(220, 207, 184, 0.8);
-            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--line);
+            margin-top: 16px;
         }
 
         ul {
@@ -240,73 +496,148 @@
         .pill-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             margin-top: 12px;
         }
 
         .pill {
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: rgba(180, 83, 9, 0.12);
-            color: #8a4b08;
-            font-size: 0.92rem;
-            font-weight: 600;
+            padding: 8px 10px;
+            color: var(--ink);
         }
 
-        .fact-box {
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.72);
+        .status-chip {
+            display: inline-flex;
+            padding: 7px 9px;
+            margin-bottom: 8px;
+            color: var(--cyan);
+            border-color: rgba(125, 249, 255, 0.32);
         }
 
-        .fact-box p,
-        .section p {
-            color: var(--muted);
-            line-height: 1.6;
-            margin: 8px 0 0;
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
         }
 
         .empty {
-            color: var(--muted);
-            line-height: 1.7;
+            min-height: 420px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            border: 1px dashed rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            padding: 28px;
         }
 
         a {
-            color: var(--accent);
+            color: var(--cyan);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(125, 249, 255, 0.38);
         }
 
-        @media (max-width: 900px) {
-            .layout {
+        @media (max-width: 1060px) {
+            .layout,
+            .result-header {
                 grid-template-columns: 1fr;
             }
 
+            .confidence {
+                text-align: left;
+            }
+
+            .score-ring {
+                margin-left: 0;
+            }
+
             .metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 14px;
+            }
+
+            .topbar,
+            .panel-head,
+            .actions {
                 grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-pills {
+                justify-content: flex-start;
+            }
+
+            .layout,
+            .metric-grid,
+            .evidence-grid {
+                grid-template-columns: 1fr;
+            }
+
+            textarea {
+                min-height: 230px;
             }
         }
     </style>
 </head>
 <body>
     <main class="shell">
+        <nav class="topbar" aria-label="SignalTrail status">
+            <div class="brand">
+                <div class="mark" aria-hidden="true"></div>
+                <div>
+                    <strong>SignalTrail</strong>
+                    <span>Hybrid misinformation lab</span>
+                </div>
+            </div>
+            <div class="nav-pills" aria-label="Active analysis modules">
+                <span>ML</span>
+                <span>RAG</span>
+                <span>USGS Live</span>
+                <span>Trust Score</span>
+            </div>
+        </nav>
+
         <section class="hero">
-            <div class="eyebrow">Hybrid Detection System</div>
-            <h1>Fake News Detection With Verification Layer</h1>
+            <div class="eyebrow">Real-time claim intelligence</div>
+            <h1>Detect the signal inside the noise.</h1>
             <p class="subcopy">
-                This upgraded pipeline combines your NLP classifier with clickbait detection,
-                confidence scoring, claim extraction, source credibility analysis, weighted trust
-                scoring, and a retrieval-based fact-checking layer.
+                Drop a headline, rumor, or claim. The system blends ML prediction,
+                evidence retrieval, source reputation, clickbait risk, and live event checks.
             </p>
+            <div class="hero-meta" aria-label="System capabilities">
+                <span>Claim extraction</span>
+                <span>Local evidence search</span>
+                <span>Live earthquake verification</span>
+                <span>Explainable verdicts</span>
+            </div>
         </section>
 
         <section class="layout">
             <div class="panel">
-                <h2>Analyze News Text</h2>
+                <div class="panel-head">
+                    <div>
+                        <h2>Analysis Engine</h2>
+                        <div class="pulse-line" aria-hidden="true"></div>
+                    </div>
+                    <span class="status-chip">Online</span>
+                </div>
+
                 <form method="POST">
-                    <textarea name="news" placeholder="Paste a headline, article body, or full news text here...">{{ submitted_text }}</textarea>
+                    <textarea id="newsInput" name="news" placeholder="Paste a headline, article body, or factual claim...">{{ submitted_text }}</textarea>
+                    <div class="sample-row" aria-label="Sample claims">
+                        <button class="sample-chip" type="button" data-sample="India is the capital of Pakistan">Fact Claim</button>
+                        <button class="sample-chip" type="button" data-sample="philippines hit a massive earthquake today.">Live Event</button>
+                        <button class="sample-chip" type="button" data-sample="Scientists confirmed that sleeping near magnets makes humans immortal.">Science Rumor</button>
+                        <button class="sample-chip" type="button" data-sample="New Delhi is the capital of India https://www.britannica.com/place/New-Delhi">Trusted Source</button>
+                    </div>
                     <div class="actions">
                         <button type="submit">Run Hybrid Analysis</button>
-                        <span class="hint">TF-IDF + PassiveAggressive + RAG evidence + trust scoring</span>
+                        <span class="counter"><span id="wordCount">0</span> words scanned</span>
                     </div>
                 </form>
 
@@ -317,26 +648,33 @@
                 {% endif %}
             </div>
 
-            <div class="panel">
+            <div class="result-panel">
                 {% if analysis %}
                     <div class="result-header">
                         <div>
-                            <div class="badge {{ analysis.tone }}">{{ analysis.label }}</div>
+                            <div class="verdict-label">Final verdict</div>
+                            <h2 class="verdict-title">{{ analysis.label }}</h2>
+                            <div class="pill-list">
+                                <span class="badge {{ analysis.tone }}">{{ analysis.tone }}</span>
+                                <span class="pill">{{ analysis.trust_score.rating }}</span>
+                            </div>
                         </div>
                         <div class="confidence">
-                            <span class="hint">Hybrid confidence</span>
-                            <strong>{{ analysis.confidence }}%</strong>
+                            <div class="score-ring" style="--score: {{ analysis.confidence }}">
+                                <strong>{{ analysis.confidence }}%</strong>
+                            </div>
+                            <div class="hint">Hybrid confidence</div>
                         </div>
                     </div>
 
                     <div class="metric-grid">
                         <div class="metric">
-                            <span>NLP model output</span>
+                            <span>NLP model</span>
                             <strong>{{ analysis.model_label }}</strong>
                             <div class="hint">{{ analysis.model_confidence }}% confidence</div>
                         </div>
                         <div class="metric">
-                            <span>Clickbait risk</span>
+                            <span>Clickbait</span>
                             <strong>{{ analysis.clickbait.risk_level }}</strong>
                             <div class="hint">{{ analysis.clickbait.score_percent }}% score</div>
                         </div>
@@ -346,15 +684,15 @@
                             <div class="hint">{{ analysis.trust_score.rating }}</div>
                         </div>
                         <div class="metric">
-                            <span>Source credibility</span>
+                            <span>Source risk</span>
                             <strong>{{ analysis.source_credibility.risk_level }}</strong>
-                            <div class="hint">{{ analysis.source_credibility.score }}% score</div>
+                            <div class="hint">{{ analysis.source_credibility.score }}% credibility</div>
                         </div>
                     </div>
 
                     <div class="fact-box">
-                        <strong>Fact-check status:</strong> {{ analysis.fact_check.status|capitalize }}<br>
-                        <span class="hint">Source: {{ analysis.fact_check.source }}</span>
+                        <span class="status-chip">{{ analysis.fact_check.status|capitalize }}</span>
+                        <strong>{{ analysis.fact_check.verdict }}</strong>
                         <p>{{ analysis.fact_check.explanation }}</p>
                         {% if analysis.fact_check.matched_claim %}
                             <p><strong>Matched claim:</strong> {{ analysis.fact_check.matched_claim }}</p>
@@ -365,7 +703,7 @@
                     </div>
 
                     <div class="section">
-                        <strong>Live event verification</strong>
+                        <div class="section-title">Live event verification</div>
                         {% if analysis.live_evidence %}
                             <div class="fact-box">
                                 <strong>{{ analysis.live_evidence.verdict }}</strong>
@@ -381,39 +719,44 @@
                     </div>
 
                     <div class="section">
-                        <strong>Extracted claims</strong>
+                        <div class="section-title">Extracted claims</div>
                         {% if analysis.claims %}
-                            <ul>
+                            <div class="evidence-grid">
                                 {% for claim in analysis.claims %}
-                                    <li>{{ claim.text }} <span class="hint">({{ claim.confidence }}% claim confidence)</span></li>
+                                    <div class="mini-card">
+                                        <span>{{ claim.type }}</span>
+                                        <strong>{{ claim.text }}</strong>
+                                        <p>{{ claim.confidence }}% claim confidence</p>
+                                    </div>
                                 {% endfor %}
-                            </ul>
+                            </div>
                         {% else %}
                             <p>No checkable claim was extracted from this input.</p>
                         {% endif %}
                     </div>
 
                     <div class="section">
-                        <strong>Retrieved evidence</strong>
+                        <div class="section-title">Retrieved evidence</div>
                         {% if analysis.evidence %}
-                            <ul>
+                            <div class="evidence-grid">
                                 {% for item in analysis.evidence %}
-                                    <li>
-                                        {{ item.claim }}
-                                        <span class="hint">({{ item.verdict }}, {{ item.retrieval_score }}% retrieval match)</span>
+                                    <div class="mini-card">
+                                        <span>{{ item.verdict }} · {{ item.retrieval_score }}% match</span>
+                                        <strong>{{ item.claim }}</strong>
+                                        <p>{{ item.explanation }}</p>
                                         {% if item.source_url %}
-                                            <br><a href="{{ item.source_url }}" target="_blank" rel="noreferrer">Open evidence source</a>
+                                            <p><a href="{{ item.source_url }}" target="_blank" rel="noreferrer">Open evidence source</a></p>
                                         {% endif %}
-                                    </li>
+                                    </div>
                                 {% endfor %}
-                            </ul>
+                            </div>
                         {% else %}
                             <p>No evidence item crossed the semantic retrieval threshold.</p>
                         {% endif %}
                     </div>
 
                     <div class="section">
-                        <strong>Trust score breakdown</strong>
+                        <div class="section-title">Trust score breakdown</div>
                         <div class="pill-list">
                             <div class="pill">Model {{ analysis.trust_score.components.model }}%</div>
                             <div class="pill">Evidence {{ analysis.trust_score.components.evidence }}%</div>
@@ -423,20 +766,7 @@
                     </div>
 
                     <div class="section">
-                        <strong>Source credibility signals</strong>
-                        {% if analysis.source_credibility.signals %}
-                            <ul>
-                                {% for signal in analysis.source_credibility.signals %}
-                                    <li>{{ signal }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p>No major source credibility signals were detected.</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="section">
-                        <strong>Why this result</strong>
+                        <div class="section-title">Why this result</div>
                         <p>{{ analysis.explanation.summary }}</p>
                         <ul>
                             {% for reason in analysis.explanation.reasons %}
@@ -446,7 +776,7 @@
                     </div>
 
                     <div class="section">
-                        <strong>Top informative terms</strong>
+                        <div class="section-title">Signal terms</div>
                         {% if analysis.explanation.top_terms %}
                             <div class="pill-list">
                                 {% for term in analysis.explanation.top_terms %}
@@ -457,27 +787,38 @@
                             <p>No dominant weighted terms were available for this text.</p>
                         {% endif %}
                     </div>
-
-                    <div class="section">
-                        <strong>Clickbait signals</strong>
-                        {% if analysis.clickbait.matched_terms %}
-                            <div class="pill-list">
-                                {% for term in analysis.clickbait.matched_terms %}
-                                    <div class="pill">{{ term }}</div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p>No strong clickbait keywords were detected.</p>
-                        {% endif %}
-                    </div>
                 {% else %}
                     <div class="empty">
-                        Results will appear here after you submit text. The dashboard shows the final label,
-                        confidence score, clickbait risk, fact-check evidence, and explanation.
+                        <div>
+                            <div class="section-title">Awaiting signal</div>
+                            <p>Results will appear here after the first analysis run.</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </section>
     </main>
+
+    <script>
+        const input = document.querySelector("#newsInput");
+        const wordCount = document.querySelector("#wordCount");
+        const sampleButtons = document.querySelectorAll("[data-sample]");
+
+        function updateWordCount() {
+            const words = input.value.trim().split(/\s+/).filter(Boolean);
+            wordCount.textContent = words.length;
+        }
+
+        sampleButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                input.value = button.dataset.sample;
+                input.focus();
+                updateWordCount();
+            });
+        });
+
+        input.addEventListener("input", updateWordCount);
+        updateWordCount();
+    </script>
 </body>
 </html>
