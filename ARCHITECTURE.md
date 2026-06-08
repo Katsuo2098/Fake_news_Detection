@@ -13,6 +13,7 @@
    - local RAG-style evidence retrieval
    - clickbait detection
    - source credibility scoring
+   - live event verification for breaking earthquake claims
    - fact-check verification
    - weighted trust score calculation
    - explanation generation
@@ -32,6 +33,7 @@
   - local knowledge-base retrieval
   - clickbait detection
   - source credibility analysis
+  - no-key live earthquake verification through USGS feeds
   - weighted trust score generation
   - explanation generation
   - external API fact-check hook
@@ -55,6 +57,10 @@ Optional `.env` file at project root:
 ```env
 FACT_CHECK_API_URL=https://your-api-endpoint
 FACT_CHECK_API_KEY=your_api_key
+LIVE_EVENT_CHECKS=true
+USGS_EARTHQUAKE_FEED_URL=https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson
+LIVE_NEWS_CHECKS=false
+LIVE_NEWS_API_URL=https://api.gdeltproject.org/api/v2/doc/doc
 ```
 
 Expected API response format:
@@ -80,6 +86,11 @@ signals into a final trust score:
 | Evidence retrieval | 35% | Retrieves similar verified claims from `knowledge_base.json` and checks whether they support or contradict the input. |
 | Source credibility | 20% | Looks for URLs, HTTPS usage, reliable domains, suspicious domain wording, and publication metadata cues. |
 | Clickbait risk | 10% | Penalizes sensational wording, excessive exclamation marks, and uppercase emphasis. |
+
+For earthquake claims, the backend also checks the live USGS significant
+earthquake feed before falling back to the local knowledge base. This helps the
+system handle breaking events such as "Philippines hit a massive earthquake
+today" even when the event has not yet been added to `knowledge_base.json`.
 
 Additional API fields returned by `/api/analyze`:
 

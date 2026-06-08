@@ -40,6 +40,7 @@ def build_analysis_payload(news_text: str):
         "fact_check": analysis["fact_check"],
         "claims": analysis["claims"],
         "evidence": analysis["evidence"],
+        "live_evidence": analysis["live_evidence"],
         "source_credibility": analysis["source_credibility"],
         "trust_score": analysis["trust_score"],
         "explanation": analysis["explanation"],

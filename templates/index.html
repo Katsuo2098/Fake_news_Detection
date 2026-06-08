@@ -365,6 +365,22 @@
                     </div>
 
                     <div class="section">
+                        <strong>Live event verification</strong>
+                        {% if analysis.live_evidence %}
+                            <div class="fact-box">
+                                <strong>{{ analysis.live_evidence.verdict }}</strong>
+                                <p>{{ analysis.live_evidence.explanation }}</p>
+                                <span class="hint">Source: {{ analysis.live_evidence.source }} · {{ analysis.live_evidence.match_score }}% match</span>
+                                {% if analysis.live_evidence.evidence_url %}
+                                    <p><a href="{{ analysis.live_evidence.evidence_url }}" target="_blank" rel="noreferrer">Open live evidence</a></p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p>No matching live event feed result was found or live checks were unavailable.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
                         <strong>Extracted claims</strong>
                         {% if analysis.claims %}
                             <ul>

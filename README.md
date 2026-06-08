@@ -17,11 +17,16 @@ basic fake/real classifier. The Flask API combines:
 4. Fact-check support/contradiction detection
 5. Source credibility scoring for submitted URLs
 6. Clickbait and sensational-language detection
-7. A weighted trust score with explainable component breakdown
+7. Live earthquake verification using the no-key USGS earthquake feed
+8. A weighted trust score with explainable component breakdown
 
 Example: if the text says `India is the capital of Pakistan`, the ML classifier
 may still see the wording as real-looking, but the retrieval-based verification
 layer matches it against the local evidence base and returns a contradiction.
+
+For breaking earthquake claims, the app can check live USGS data. For example,
+`philippines hit a massive earthquake today` can be supported by the live event
+feed instead of being judged only by the writing-style classifier.
 
 ## **Prerequisites**
 ---
