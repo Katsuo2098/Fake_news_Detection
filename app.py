@@ -38,6 +38,10 @@ def build_analysis_payload(news_text: str):
         "model_confidence": analysis["model_confidence"],
         "clickbait": analysis["clickbait"],
         "fact_check": analysis["fact_check"],
+        "claims": analysis["claims"],
+        "evidence": analysis["evidence"],
+        "source_credibility": analysis["source_credibility"],
+        "trust_score": analysis["trust_score"],
         "explanation": analysis["explanation"],
         "cleaned_text": analysis["cleaned_text"],
     }, None

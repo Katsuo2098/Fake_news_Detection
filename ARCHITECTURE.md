@@ -9,8 +9,12 @@
    - TF-IDF vectorization
    - PassiveAggressive classification
    - confidence estimation
+   - claim extraction
+   - local RAG-style evidence retrieval
    - clickbait detection
+   - source credibility scoring
    - fact-check verification
+   - weighted trust score calculation
    - explanation generation
 4. Flask renders the full analysis dashboard
 
@@ -24,13 +28,19 @@
   - model loading
   - vectorizer loading
   - confidence scoring
+  - claim extraction
+  - local knowledge-base retrieval
   - clickbait detection
+  - source credibility analysis
+  - weighted trust score generation
   - explanation generation
   - external API fact-check hook
   - local knowledge base fallback
 
 - `knowledge_base.json`
-  Local fact-check knowledge base used when no external API is configured.
+  Local fact-check knowledge base used when no external API is configured. At
+  runtime this is indexed with a TF-IDF retriever so submitted claims can be
+  matched against evidence semantically instead of using only exact keywords.
 
 - `templates/index.html`
   Frontend dashboard.
@@ -58,6 +68,51 @@ Expected API response format:
   "score": 92
 }
 ```
+
+## Advanced Hybrid Intelligence Layer
+
+The current system is more than a single fake/real classifier. It combines four
+signals into a final trust score:
+
+| Signal | Weight | Purpose |
+| --- | ---: | --- |
+| ML model confidence | 35% | Measures whether the trained NLP model sees the text as real or fake. |
+| Evidence retrieval | 35% | Retrieves similar verified claims from `knowledge_base.json` and checks whether they support or contradict the input. |
+| Source credibility | 20% | Looks for URLs, HTTPS usage, reliable domains, suspicious domain wording, and publication metadata cues. |
+| Clickbait risk | 10% | Penalizes sensational wording, excessive exclamation marks, and uppercase emphasis. |
+
+Additional API fields returned by `/api/analyze`:
+
+```json
+{
+  "claims": [
+    {
+      "text": "India is the capital of Pakistan",
+      "type": "factual_claim",
+      "confidence": 80
+    }
+  ],
+  "evidence": [
+    {
+      "claim": "India is the capital of Pakistan",
+      "verdict": "False",
+      "retrieval_score": 71.77
+    }
+  ],
+  "source_credibility": {
+    "score": 45,
+    "risk_level": "Medium"
+  },
+  "trust_score": {
+    "score": 35,
+    "rating": "Very low trust"
+  }
+}
+```
+
+This lets the project handle factual contradictions such as "India is the
+capital of Pakistan" even when the original writing-style classifier predicts
+the text as real.
 
 ## Future BERT Upgrade
 

@@ -6,6 +6,23 @@ news has become a major concern for being destructive sometimes spreading confus
 
 The Aims of this projects is to use the Natural Language Processing and Machine learning  to detect the Fake news based on the text content of the Article.And after building the suitable Machine learning model to detect the fake/true news then to deploye it into a web interface using python_Flask.
 
+## **Advanced Hybrid Upgrade**
+---
+This version now works as a hybrid misinformation analysis system rather than a
+basic fake/real classifier. The Flask API combines:
+
+1. TF-IDF + PassiveAggressiveClassifier fake-news prediction
+2. Rule-based claim extraction for factual statements
+3. Local RAG-style evidence retrieval from `knowledge_base.json`
+4. Fact-check support/contradiction detection
+5. Source credibility scoring for submitted URLs
+6. Clickbait and sensational-language detection
+7. A weighted trust score with explainable component breakdown
+
+Example: if the text says `India is the capital of Pakistan`, the ML classifier
+may still see the wording as real-looking, but the retrieval-based verification
+layer matches it against the local evidence base and returns a contradiction.
+
 ## **Prerequisites**
 ---
 ### Things you need to install 

@@ -28,5 +28,35 @@
     "verdict": "False",
     "explanation": "Bleach is toxic and is not a treatment for viral infections.",
     "source_url": "https://www.cdc.gov/"
+  },
+  {
+    "claim": "India is the capital of Pakistan",
+    "verdict": "False",
+    "explanation": "Pakistan's capital city is Islamabad. India is a separate country, not the capital of Pakistan.",
+    "source_url": "https://www.britannica.com/place/Islamabad"
+  },
+  {
+    "claim": "Islamabad is the capital of Pakistan",
+    "verdict": "True",
+    "explanation": "Islamabad is the capital city of Pakistan.",
+    "source_url": "https://www.britannica.com/place/Islamabad"
+  },
+  {
+    "claim": "New Delhi is the capital of India",
+    "verdict": "True",
+    "explanation": "New Delhi is the national capital of India.",
+    "source_url": "https://www.britannica.com/place/New-Delhi"
+  },
+  {
+    "claim": "Scientists confirmed that sleeping near magnets makes humans immortal",
+    "verdict": "False",
+    "explanation": "There is no credible scientific evidence that sleeping near magnets can make humans immortal.",
+    "source_url": "https://www.who.int/"
+  },
+  {
+    "claim": "World War 3 was won by India",
+    "verdict": "False",
+    "explanation": "There has been no World War 3, so no country has won it.",
+    "source_url": "https://www.britannica.com/event/World-War-II"
   }
 ]

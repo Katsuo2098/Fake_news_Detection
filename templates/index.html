@@ -294,8 +294,8 @@
             <h1>Fake News Detection With Verification Layer</h1>
             <p class="subcopy">
                 This upgraded pipeline combines your NLP classifier with clickbait detection,
-                confidence scoring, explanation generation, and a fact-checking layer that can
-                use either an external API or a local knowledge base.
+                confidence scoring, claim extraction, source credibility analysis, weighted trust
+                scoring, and a retrieval-based fact-checking layer.
             </p>
         </section>
 
@@ -306,7 +306,7 @@
                     <textarea name="news" placeholder="Paste a headline, article body, or full news text here...">{{ submitted_text }}</textarea>
                     <div class="actions">
                         <button type="submit">Run Hybrid Analysis</button>
-                        <span class="hint">TF-IDF + PassiveAggressive + fact-check + clickbait signals</span>
+                        <span class="hint">TF-IDF + PassiveAggressive + RAG evidence + trust scoring</span>
                     </div>
                 </form>
 
@@ -340,6 +340,16 @@
                             <strong>{{ analysis.clickbait.risk_level }}</strong>
                             <div class="hint">{{ analysis.clickbait.score_percent }}% score</div>
                         </div>
+                        <div class="metric">
+                            <span>Trust score</span>
+                            <strong>{{ analysis.trust_score.score }}%</strong>
+                            <div class="hint">{{ analysis.trust_score.rating }}</div>
+                        </div>
+                        <div class="metric">
+                            <span>Source credibility</span>
+                            <strong>{{ analysis.source_credibility.risk_level }}</strong>
+                            <div class="hint">{{ analysis.source_credibility.score }}% score</div>
+                        </div>
                     </div>
 
                     <div class="fact-box">
@@ -351,6 +361,61 @@
                         {% endif %}
                         {% if analysis.fact_check.evidence_url %}
                             <p><a href="{{ analysis.fact_check.evidence_url }}" target="_blank" rel="noreferrer">Open supporting source</a></p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
+                        <strong>Extracted claims</strong>
+                        {% if analysis.claims %}
+                            <ul>
+                                {% for claim in analysis.claims %}
+                                    <li>{{ claim.text }} <span class="hint">({{ claim.confidence }}% claim confidence)</span></li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No checkable claim was extracted from this input.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
+                        <strong>Retrieved evidence</strong>
+                        {% if analysis.evidence %}
+                            <ul>
+                                {% for item in analysis.evidence %}
+                                    <li>
+                                        {{ item.claim }}
+                                        <span class="hint">({{ item.verdict }}, {{ item.retrieval_score }}% retrieval match)</span>
+                                        {% if item.source_url %}
+                                            <br><a href="{{ item.source_url }}" target="_blank" rel="noreferrer">Open evidence source</a>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No evidence item crossed the semantic retrieval threshold.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="section">
+                        <strong>Trust score breakdown</strong>
+                        <div class="pill-list">
+                            <div class="pill">Model {{ analysis.trust_score.components.model }}%</div>
+                            <div class="pill">Evidence {{ analysis.trust_score.components.evidence }}%</div>
+                            <div class="pill">Source {{ analysis.trust_score.components.source }}%</div>
+                            <div class="pill">Clickbait {{ analysis.trust_score.components.clickbait }}%</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <strong>Source credibility signals</strong>
+                        {% if analysis.source_credibility.signals %}
+                            <ul>
+                                {% for signal in analysis.source_credibility.signals %}
+                                    <li>{{ signal }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No major source credibility signals were detected.</p>
                         {% endif %}
                     </div>
 
